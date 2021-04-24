@@ -1,7 +1,7 @@
-from mido import MidiFile, Message, MidiTrack
+from mido import MidiFile
 
 import glob
-from os import path, walk
+from os import walk
 
 def similarity(filename, my_mid):
 
@@ -28,13 +28,13 @@ def similarity(filename, my_mid):
         similar = same/(same+diff)
     else:
         similar = 0
-    return similar, filename#max(mid.tracks, key=len)
+    return similar, filename
 
 def main():
 
     files = []
     folders = [x[0] for x in walk("training")]
-    #folders.remove('training\\hayden')
+
     for folder in folders:
         files += (glob.glob(folder+"/*.mid"))
 

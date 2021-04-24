@@ -1,4 +1,3 @@
-from ssl import OP_NO_TLSv1_1
 from mido import MidiFile, Message, MidiTrack
 from datetime import datetime
 from time import perf_counter
@@ -71,7 +70,6 @@ def ngram(indx, current_notes, current_vels, current_times, notes, velocities, t
         print(f"ngram find time: {stop-start:0.3f} seconds")
 
 
-    #index = random.randrange(len(note_tokens)-N)
     index = (len(current_notes)-N)
     curr_sequence = ' '.join(current_notes[index:index+N])
 
@@ -83,18 +81,13 @@ def ngram(indx, current_notes, current_vels, current_times, notes, velocities, t
     diverge = 0
     continuous = [8]
 
-    #print(indx)
     next_in_seq = indx
     next_vel_seq = indx
     next_time_seq = indx
 
-    #print(next_in_seq, "-", note_tokens[next_in_seq], "-", curr_sequence, "-", note_tokens[indx-N:indx+1])
-    #exit()
-
     first_times = []
 
     for i in range(notes_to_estimate):
-        #print(i, "~", next_in_seq, "-", note_tokens[next_in_seq], "-", curr_sequence, "-", note_tokens[next_in_seq-N:next_in_seq+1])
         if curr_sequence not in ngrams.keys():
             index = random.randrange(len(note_tokens)-N)
             print(i, "MISSING", curr_sequence)
@@ -131,19 +124,8 @@ def ngram(indx, current_notes, current_vels, current_times, notes, velocities, t
 
             continuous[-1] += 1     
 
-        #if i < 1:
-        #    
-        #    note_x = []
-        #    for x in ngrams[curr_sequence]:
-        #        note_x.append(int(time_tokens[x]))
-        #    note_x = sorted(note_x, reverse=True)
-        #    print(note_x)
         if i < 20:
             first_times.append(next_time)
-
-        #if i == 10:
-        #    N = 8
-        #    ngrams = create_key(note_tokens, N, {})
 
         output_notes += ' ' + next_note
         
@@ -194,7 +176,6 @@ def create_track(details, file):
             v = 35
         elif v > 105:
             v = 105
-        #track.append(Message('note_on', note=int(n[0]), velocity=(int(n[1])+80)//2, time=int(n[2])))
         track.append(Message('note_on', note=int(n[0]), velocity=v, time=int(n[2])))
 
         
@@ -203,7 +184,6 @@ def create_track(details, file):
     current_time = now.strftime("%H-%M-%S")
     filename = 'compositions/' + file + "_cont_"  + current_time + '.mid'
 
-    #if mid.length > 53:
     mid.save(filename)
     return mid, filename
 
@@ -277,34 +257,22 @@ def main():
     current_vels = nltk.word_tokenize(current_details[1])
     current_times = nltk.word_tokenize(current_details[2])
 
-    #print(current_notes_tokens)
-    #current_notes_tokens = current_details[0]
-
-    #exit()
     
     for _ in range(3):
         start = perf_counter()
         note_tokens = nltk.word_tokenize(all_notes)
         indx = [i+N for i in range(len(note_tokens)) if note_tokens[i:i+N] == current_notes[-N:]][0]
 
-        #for ind in indx:
-
-        #if search == 0:
         res = ngram(indx, current_notes, current_vels, current_times, all_notes, all_velocities, all_times, N)
-        #    pickle.dump(res[3], open("ngram_"+composer+".p", "wb"))
-
-        #else:
-        #    res = ngram(indx, current_notes, current_vels, current_times, all_notes, all_velocities, all_times, N, ngrams)
 
         notes = res[0]
         velocities = res[1]
         times = res[2]
         details = list(zip(notes, velocities, times))
-        #print(details)
+
         fin = create_track(details, file)
         mid, name = fin[0], fin[1]
-        #for msg in mid.tracks[0]:
-        #    print(msg)
+
         print("notes: ", len(details))
         stop = perf_counter()
         print(f"Composition Complete: length - {mid.length:0.2f} seconds")
@@ -316,7 +284,7 @@ def main():
             sim = []
             for piece in files:
                 sim.append(similarity(piece, mid))
-            #print(sim)
+
             srt = sorted(sim, key=lambda x: x[0], reverse=True)[:5]
             for piece in srt:
                 print(f"Similarity for {piece[1]}: {piece[0]*100:0.3f} %")
