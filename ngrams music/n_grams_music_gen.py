@@ -255,7 +255,7 @@ def main():
 
     for _ in range(1):
 
-        show_simalarities = True
+        show_simalarities = False
         start = perf_counter()
         if search == 0:
             res = ngram(all_notes, all_velocities, all_times, N)
@@ -271,8 +271,6 @@ def main():
         print(continuous)
         continuous = sorted(continuous, reverse=True)
         print(continuous)
-        if continuous[0] > 90:
-            show_simalarities = False
         details = list(zip(notes, velocities, times))
 
         fin = create_track(details, composer)
