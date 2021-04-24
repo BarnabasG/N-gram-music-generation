@@ -53,7 +53,7 @@ def similarity(filename, my_mid):
         similar = same/(same+diff)
     else:
         similar = 0
-    return similar, filename#max(mid.tracks, key=len)
+    return similar, filename
 
 
 def ngram(notes, velocities, times, N, ngrams={}):
@@ -92,7 +92,7 @@ def ngram(notes, velocities, times, N, ngrams={}):
             curr_sequence = ' '.join(note_tokens[index:index+N])
 
 
-        if continuous[-1] > 7:
+        if continuous[-1] > 7:      # Use at least 7 note sequence
             next = random.choice(ngrams[curr_sequence])
             
             next_note = note_tokens[next]
@@ -152,7 +152,7 @@ def ngram(notes, velocities, times, N, ngrams={}):
 
     return (note_out, vel_out, time_out, ngrams, continuous)
 
-def create_key(note_tokens, N, ngrams):
+def create_key(note_tokens, N, ngrams):         # Generate ngrams
 
     for i in range(len(note_tokens)-N):
         seq = ' '.join(note_tokens[i:i+N])
@@ -182,7 +182,7 @@ def create_track(details, composer):
     now = datetime.now()
 
     current_time = now.strftime("%H-%M-%S")
-    filename = 'compositions/' + composer + "_"  + current_time +'.mid'
+    filename = 'ngrams music/compositions/' + composer + "_"  + current_time +'.mid'
 
     mid.save(filename)
 
@@ -190,7 +190,7 @@ def create_track(details, composer):
 
 def get_setup(composer, count):
 
-    f=open(composer + "_training.txt", "r")
+    f=open("ngrams music/"+composer + "_training.txt", "r")
     lines = f.readlines()
     clean = [ line.strip() for line in lines ]
 
@@ -204,17 +204,17 @@ def main():
 
     N = 8
     
-    composer = 'all'
+    composer = 'all'        #Set to a specific composer to only sample thier pieces (far less accurate) or leave as 'all'
     if composer == 'all':
         files = []
-        folders = [x[0] for x in walk("training")]
+        folders = [x[0] for x in walk("ngrams music/training")]
         for folder in folders:
             files += (glob.glob(folder+"/*.mid"))
     else:
-        files = glob.glob("training/"+composer+"/*.mid")
+        files = glob.glob("ngrams music/training/"+composer+"/*.mid")
     count = len(files)
-    print(composer + "_training.txt")
-    if path.isfile(composer + "_training.txt"):
+    print("ngrams music/"+composer + "_training.txt")
+    if path.isfile("ngrams music/"+composer + "_training.txt"):
         search = get_setup(composer, count)
     else:
         search = 0
@@ -228,7 +228,7 @@ def main():
             all_velocities += data[1]
             all_times += data[2]
 
-        f=open(composer + "_training.txt", "w")
+        f=open("ngrams music/" + composer + "_training.txt", "w")     # Saved training file data
         f.write(str(count) + '\n')
         f.write(str(all_notes) + '\n')
         f.write(str(all_velocities) + '\n')
@@ -244,22 +244,22 @@ def main():
         all_times = search[2]
 
 
-        if path.isfile("ngram_"+composer+"_"+str(N)+".p"):
-            ngrams = pickle.load(open("ngram_"+composer+"_"+str(N)+".p", "rb"))
+        if path.isfile("ngrams music/ngram_"+composer+"_"+str(N)+".p"):
+            ngrams = pickle.load(open("ngrams music/ngram_"+composer+"_"+str(N)+".p", "rb"))     # Saved ngram data
         else:
             search = 0
 
-
     stop = perf_counter()
+
     print(f"Load time: {stop-start:0.3f} seconds")  
 
-    for _ in range(1):
+    for _ in range(1):      # Change range to pick number of pieces generated
 
-        show_simalarities = False
+        show_simalarities = False       # Change to pick whether training piece similarity is calculated (slow)
         start = perf_counter()
         if search == 0:
             res = ngram(all_notes, all_velocities, all_times, N)
-            pickle.dump(res[3], open("ngram_"+composer+"_"+str(N)+".p", "wb"))
+            pickle.dump(res[3], open("ngrams music/ngram_"+composer+"_"+str(N)+".p", "wb"))
 
         else:
             res = ngram(all_notes, all_velocities, all_times, N, ngrams)
@@ -268,7 +268,7 @@ def main():
         velocities = res[1]
         times = res[2]
         continuous = res[4]
-        print(continuous)
+        print(continuous)       # Show how many notes were sampled in a row for each section
         continuous = sorted(continuous, reverse=True)
         print(continuous)
         details = list(zip(notes, velocities, times))
