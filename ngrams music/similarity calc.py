@@ -33,13 +33,13 @@ def similarity(filename, my_mid):
 def main():
 
     files = []
-    folders = [x[0] for x in walk("training")]
+    folders = [x[0] for x in walk("ngrams music/training")]
 
     for folder in folders:
         files += (glob.glob(folder+"/*.mid"))
 
-    file = "all_16-05-22 SS_new"
-    filename = "compositions/"+file+'.mid'
+    file = "successes/successful_sequence_1 (slow)"
+    filename = "ngrams music/compositions/"+file+'.mid'
 
     mid = MidiFile(filename)
 

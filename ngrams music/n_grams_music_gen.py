@@ -56,7 +56,7 @@ def similarity(filename, my_mid):
     return similar, filename
 
 
-def ngram(notes, velocities, times, N, ngrams={}):
+def ngram(notes, velocities, times, N, ngrams={}):      # Run music generation from ngrams model
 
 
     note_tokens = nltk.word_tokenize(notes)
@@ -86,10 +86,13 @@ def ngram(notes, velocities, times, N, ngrams={}):
     next_time_seq = index+N
 
     for i in range(notes_to_estimate):
+
         if curr_sequence not in ngrams.keys():
-            index = random.randrange(len(note_tokens)-N)
             print("MISSING", curr_sequence, i)
+            #print("#", next_in_seq, "-", note_tokens[next_in_seq], "-", curr_sequence, "-", note_tokens[next_in_seq-N:next_in_seq+1])
+            index = random.randrange(len(note_tokens)-N)
             curr_sequence = ' '.join(note_tokens[index:index+N])
+            #exit()
 
 
         if continuous[-1] > 7:      # Use at least 7 note sequence
@@ -204,7 +207,7 @@ def main():
 
     N = 8
     
-    composer = 'all'        #Set to a specific composer to only sample thier pieces (far less accurate) or leave as 'all'
+    composer = 'all'                #Set to a specific composer to only sample those pieces (far less accurate) or leave as 'all'
     if composer == 'all':
         files = []
         folders = [x[0] for x in walk("ngrams music/training")]
@@ -213,7 +216,7 @@ def main():
     else:
         files = glob.glob("ngrams music/training/"+composer+"/*.mid")
     count = len(files)
-    print("ngrams music/"+composer + "_training.txt")
+    print(composer + "_training.txt")
     if path.isfile("ngrams music/"+composer + "_training.txt"):
         search = get_setup(composer, count)
     else:

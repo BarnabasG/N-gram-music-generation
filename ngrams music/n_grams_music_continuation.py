@@ -8,9 +8,7 @@ import random
 import glob
 from os import path, walk, remove
 
-import pickle
-
-notes_to_estimate = 50
+notes_to_estimate = 100
 
 def read_notes(filename):
     
@@ -56,7 +54,7 @@ def similarity(filename, my_mid):
     return similar, filename
 
 
-def ngram(indx, current_notes, current_vels, current_times, notes, velocities, times, N, ngrams={}):
+def ngram(indx, current_notes, current_vels, current_times, notes, velocities, times, N, ngrams={}):      # Run music generation from ngrams model
 
 
     note_tokens = nltk.word_tokenize(notes)
@@ -88,12 +86,13 @@ def ngram(indx, current_notes, current_vels, current_times, notes, velocities, t
     first_times = []
 
     for i in range(notes_to_estimate):
+
         if curr_sequence not in ngrams.keys():
+            print(i, "MISSING - n-gram error", curr_sequence)
+            #print("#", next_in_seq, "-", note_tokens[next_in_seq], "-", curr_sequence, "-", note_tokens[next_in_seq-N:next_in_seq+1])
             index = random.randrange(len(note_tokens)-N)
-            print(i, "MISSING", curr_sequence)
-            print("#", next_in_seq, "-", note_tokens[next_in_seq], "-", curr_sequence, "-", note_tokens[next_in_seq-N:next_in_seq+1])
             curr_sequence = ' '.join(note_tokens[index:index+N])
-            exit()
+            #exit()
 
         if continuous[-1] > 8:
             next = random.choice(ngrams[curr_sequence])
@@ -152,7 +151,7 @@ def ngram(indx, current_notes, current_vels, current_times, notes, velocities, t
 
     return (note_out, vel_out, time_out, ngrams)
 
-def create_key(note_tokens, N, ngrams):
+def create_key(note_tokens, N, ngrams):         # Generate ngrams
 
     for i in range(len(note_tokens)-N):
         seq = ' '.join(note_tokens[i:i+N])
@@ -182,14 +181,14 @@ def create_track(details, file):
     now = datetime.now()
 
     current_time = now.strftime("%H-%M-%S")
-    filename = 'compositions/' + file + "_cont_"  + current_time + '.mid'
+    filename = 'ngrams music/compositions/' + file + "_cont_"  + current_time + '.mid'
 
     mid.save(filename)
     return mid, filename
 
 def get_setup(composer, count):
 
-    f=open(composer + "_training.txt", "r")
+    f=open("ngrams music/"+composer + "_training.txt", "r")
     lines = f.readlines()
     clean = [ line.strip() for line in lines ]
 
@@ -203,17 +202,17 @@ def main():
 
     N = 5
     
-    composer = 'all'
+    composer = 'all'                #Set to a specific composer to only sample those pieces (far less accurate) or leave as 'all'
     if composer == 'all':
         files = []
-        folders = [x[0] for x in walk("training")]
+        folders = [x[0] for x in walk("ngrams music/training")]
         for folder in folders:
             files += (glob.glob(folder+"/*.mid"))
     else:
-        files = glob.glob("training/"+composer+"/*.mid")
+        files = glob.glob("ngrams music/training/"+composer+"/*.mid")
     count = len(files)
     print(composer + "_training.txt")
-    if path.isfile(composer + "_training.txt"):
+    if path.isfile("ngrams music/" + composer + "_training.txt"):
         search = get_setup(composer, count)
     else:
         search = 0
@@ -227,7 +226,7 @@ def main():
             all_velocities += data[1]
             all_times += data[2]
 
-        f=open(composer + "_training.txt", "w")
+        f=open("ngrams music/"+composer + "_training.txt", "w")     # Saved training file data
         f.write(str(count) + '\n')
         f.write(str(all_notes) + '\n')
         f.write(str(all_velocities) + '\n')
@@ -242,23 +241,19 @@ def main():
         all_velocities = search[1]
         all_times = search[2]
 
-        if path.isfile("ngram_"+composer+"_"+str(N)+".p"):
-            ngrams = pickle.load(open("ngram_"+composer+"_"+str(N)+".p", "rb"))
-        else:
-            search = 0
-
     stop = perf_counter()
     print(f"Load time: {stop-start:0.3f} seconds")
 
-    file = "all_00-35-39_new31_cont_01-58-27_cont_02-10-32_cont_02-12-54_new_cont_02-20-47_new_cont_02-27-19_new"
-    filename = "compositions/"+file+'.mid'
+    file = "successes/successful_sequence_1 (slow)"             # Set file to continue from
+    filename = "ngrams music/compositions/"+file+'.mid'
     current_details = read_notes(filename)
     current_notes = nltk.word_tokenize(current_details[0])
     current_vels = nltk.word_tokenize(current_details[1])
     current_times = nltk.word_tokenize(current_details[2])
 
     
-    for _ in range(3):
+    for _ in range(1):      # Change range to pick number of pieces generated
+
         start = perf_counter()
         note_tokens = nltk.word_tokenize(all_notes)
         indx = [i+N for i in range(len(note_tokens)) if note_tokens[i:i+N] == current_notes[-N:]][0]
@@ -278,7 +273,7 @@ def main():
         print(f"Composition Complete: length - {mid.length:0.2f} seconds")
         print(f"Song {name} creation time: {stop-start:0.3f} seconds")  
 
-        show_simalarities = False
+        show_simalarities = False       # Change to pick whether training piece similarity is calculated (slow)
         if show_simalarities:
             start = perf_counter()
             sim = []
