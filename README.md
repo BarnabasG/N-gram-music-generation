@@ -1,5 +1,5 @@
 # N-gram-music-generation
-## A simple AI music generation program based on N-gram techniques
+## An AI music generation program based on NLP N-gram techniques
 
 This program uses data from over 300 classical midi files from a range of composers to generate new compositions using the N-grams technique.
 The program used this technique to look at the previous N notes and find instances in the training data where this sequence also appeared.
